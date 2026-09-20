@@ -31,6 +31,7 @@ jobs:
             libxrandr-dev \
             libxinerama-dev \
             libxcursor-dev \
+            libxi-dev \
             libfreetype6-dev \
             libfontconfig1-dev \
             libasound2-dev \
