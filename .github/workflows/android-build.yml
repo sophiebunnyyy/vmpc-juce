@@ -25,8 +25,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Show available Android tools
+      - name: Show Android tools
         run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo
           echo "Installed CMake versions:"
           ls -la "$ANDROID_SDK_ROOT/cmake" || true
           echo
@@ -44,7 +46,11 @@ jobs:
 
       - name: Build Android APK
         working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          ./gradlew assembleDebug \
+            --stacktrace \
+            --info \
+            --console=plain
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
