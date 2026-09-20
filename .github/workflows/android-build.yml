@@ -22,6 +22,20 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libfreetype6-dev \
+            libfontconfig1-dev \
+            libasound2-dev \
+            libcurl4-openssl-dev
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
@@ -33,12 +47,17 @@ jobs:
 
       - name: Show Android tools
         run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          echo "Installed CMake:"
-          ls -la "$ANDROID_SDK_ROOT/cmake" || true
-          echo "Installed NDK:"
+          echo "=== ANDROID SDK ==="
+          echo "$ANDROID_SDK_ROOT"
+          echo
+          echo "=== CMAKE ==="
+          find "$ANDROID_SDK_ROOT/cmake" -maxdepth 2 -type f -name cmake -print 2>/dev/null || true
+          echo
+          echo "=== NDK ==="
           ls -la "$ANDROID_SDK_ROOT/ndk" || true
-          cmake --version || true
+          echo
+          echo "=== JAVA ==="
+          java -version
 
       - name: Build Android APK
         working-directory: android
@@ -47,3 +66,10 @@ jobs:
             --stacktrace \
             --info \
             --console=plain
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VMPC2000XL-Android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
