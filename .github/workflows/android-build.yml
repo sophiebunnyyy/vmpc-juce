@@ -25,6 +25,12 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platforms;android-36" \
+                     "build-tools;36.0.0" \
+                     "ndk;28.1.13356709"
+
       - name: Show Android tools
         run: |
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
@@ -38,23 +44,32 @@ jobs:
           echo "CMake version:"
           cmake --version || true
 
-      - name: Install Android SDK components
-        run: |
-          sdkmanager "platforms;android-36" \
-                     "build-tools;36.0.0" \
-                     "ndk;28.1.13356709"
-
       - name: Build Android APK
+        id: build
         working-directory: android
+        continue-on-error: true
         run: |
           ./gradlew assembleDebug \
             --stacktrace \
             --info \
-            --console=plain
+            --console=plain \
+            2>&1 | tee ../android-build.log
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: VMPC2000XL-build-log
+          path: android-build.log
+          if-no-files-found: error
 
       - name: Upload APK
+        if: steps.build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: VMPC2000XL-Android-debug
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Fail if build failed
+        if: steps.build.outcome != 'success'
+        run: exit 1
